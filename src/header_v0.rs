@@ -2,7 +2,6 @@ use std::convert::TryFrom;
 use std::option::Option::Some;
 
 use pad::PadStr;
-use std::str::from_utf8;
 
 #[derive(Clone, Hash, Debug, Eq, Ord, PartialOrd, PartialEq)]
 pub struct HeaderBinaryV0 {

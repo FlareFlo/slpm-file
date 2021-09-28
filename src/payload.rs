@@ -6,7 +6,7 @@ use argon2::{Argon2, PasswordHasher};
 use argon2::password_hash::SaltString;
 use rand::Rng;
 use rand::rngs::OsRng;
-use crate::processing::header_v0::{HeaderBinaryV0};
+use crate::header_v0::HeaderBinaryV0;
 
 
 pub struct Entry {
