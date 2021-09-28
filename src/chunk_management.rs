@@ -8,8 +8,13 @@ use std::os::windows::fs::FileExt;
 
 use std::io::Write;
 
-fn read_file_in_chunks_and_write() {
-	const BUFFER_SIZE: u64 = 100000;
+
+/// # Panics
+///
+/// WIP
+pub fn read_file_in_chunks_and_write() {
+	const BUFFER_SIZE: u64 = 100_000;
+	#[allow(clippy::cast_possible_truncation)] // Cast has to be save, should not ever panic
 	const BUFF_U: usize = BUFFER_SIZE as usize;
 	let file = File::open("./src/assets/100MB.bin").unwrap();
 	let mut new_file = File::create("./src/assets/new.bin").unwrap();
@@ -25,11 +30,12 @@ fn read_file_in_chunks_and_write() {
 		#[cfg(target_family = "windows")]
 			let _ = file.seek_read(&mut buffer, offset).unwrap();
 
-		new_file.write(&buffer).unwrap();
+		new_file.write_all(&buffer).unwrap();
 		offset += BUFFER_SIZE;
 	}
 
 	let remain = file_len - offset;
+	#[allow(clippy::cast_possible_truncation)] // Cast has to be save, should not ever panic
 	let mut buffer_last = vec![0; remain as usize];
 
 	#[cfg(target_family = "unix")]
@@ -37,7 +43,7 @@ fn read_file_in_chunks_and_write() {
 	#[cfg(target_family = "windows")]
 		let _ = file.seek_read(&mut buffer_last, offset).unwrap();
 
-	new_file.write(&buffer_last).unwrap();
+	new_file.write_all(&buffer_last).unwrap();
 
 	// assert_eq!(fs::read("./src/assets/old.mp4").unwrap(), fs::read("./src/assets/new.mp4").unwrap())
 }
