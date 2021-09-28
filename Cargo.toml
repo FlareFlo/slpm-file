@@ -6,7 +6,7 @@ authors = ["FlareFlo"]
 description = "The official tools for the open .slpm file-format made for the StainLessPasswordManager"
 readme = "readme.md"
 repository = "https://github.com/FlareFlo/slpm-file"
-license = "MIT or Apache-2.0"
+license = "MIT"
 keywords = ["slpm"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
