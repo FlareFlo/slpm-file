@@ -1,29 +1,31 @@
 use crate::header_v0::HeaderV0;
 use std::convert::TryFrom;
 use pad::PadStr;
+use crate::datatype::DataType;
 
 #[derive(Clone, Hash, Debug, Eq, Ord, PartialOrd, PartialEq)]
 pub struct HeaderBinaryV0 {
+	/// u16 Version indicating which struct to deserialize to (for future)
 	pub version: [u8; 2],
-	// u16 Version indicating which struct to deserialize to (for future)
-	pub datatype: [u8; 1],
-	// u8 Matched to enum DataType
-	pub name: [u8; 128],
-	//UTF-8 string with 1024 bits capacity
-	pub created: [u8; 8],
-	// u64 Create date in seconds after epoch
-	pub edited: [u8; 8],
-	// u64 Edit date in seconds after epoch
-	pub file_name: [u8; 128],
-	//UTF-8 string with 1024 bits capacity
-	pub buffer_size: [u8; 8],
-	// u64 TODO when required, store buffer size for decoding purposes (maybe have buffer size = cypher length when not used?)
-}
 
-#[derive(Clone, Hash, Debug, Eq, Ord, PartialOrd, PartialEq)]
-pub enum DataType {
-	Password = 0,
-	File = 1,
+	/// u8 Matched to enum DataType
+	pub datatype: [u8; 1],
+
+	/// UTF-8 string with 1024 bits capacity
+	pub name: [u8; 128],
+
+	/// u64 Create date in seconds after epoch
+	pub created: [u8; 8],
+
+	/// u64 Edit date in seconds after epoch
+	pub edited: [u8; 8],
+
+	/// UTF-8 string with 1024 bits capacity
+	pub file_name: [u8; 128],
+
+	/// u64 when required, store buffer size for decoding purposes (maybe have buffer size = cypher length when not used?)
+	pub buffer_size: [u8; 8],
+
 }
 
 impl HeaderBinaryV0 {
@@ -93,9 +95,14 @@ impl HeaderBinaryV0 {
 	///
 	/// Panics when any of the values are not the correct length
 	#[must_use] pub fn from_header(header: &HeaderV0) -> Self {
+		let data_type: u8;
+		match header.datatype {
+			DataType::Password => data_type = 0,
+			DataType::File => data_type = 1
+		}
 		Self {
 			version: header.version.to_be_bytes(), //Increment for new file
-			datatype: header.datatype.to_be_bytes(),
+			datatype: data_type.to_be_bytes(),
 			name: <[u8; 128]>::try_from(header.name.as_bytes()).unwrap(),
 			created: header.created.to_be_bytes(),
 			edited: header.edited.to_be_bytes(),
