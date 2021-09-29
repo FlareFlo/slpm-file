@@ -26,7 +26,7 @@ pub fn read_file_in_chunks_and_write() {
 
 	for _ in 0..buff_count {
 		#[cfg(target_family = "unix")]
-			let _ = file.read_exact_at(&mut buffer, offset).unwrap();
+			file.read_exact_at(&mut buffer, offset).unwrap();
 		#[cfg(target_family = "windows")]
 			let _ = file.seek_read(&mut buffer, offset).unwrap();
 
@@ -39,11 +39,9 @@ pub fn read_file_in_chunks_and_write() {
 	let mut buffer_last = vec![0; remain as usize];
 
 	#[cfg(target_family = "unix")]
-		let _ = file.read_exact_at(&mut buffer_last, offset).unwrap();
+		file.read_exact_at(&mut buffer_last, offset).unwrap();
 	#[cfg(target_family = "windows")]
 		let _ = file.seek_read(&mut buffer_last, offset).unwrap();
 
 	new_file.write_all(&buffer_last).unwrap();
-
-	// assert_eq!(fs::read("./src/assets/old.mp4").unwrap(), fs::read("./src/assets/new.mp4").unwrap())
 }
