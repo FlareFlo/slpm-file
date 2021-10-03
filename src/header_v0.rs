@@ -1,5 +1,5 @@
-use crate::header_binary_v0::{HeaderBinaryV0};
 use crate::datatype::DataType;
+use crate::header_binary_v0::HeaderBinaryV0;
 
 #[derive(Clone, Hash, Debug, Eq, Ord, PartialOrd, PartialEq)]
 pub struct HeaderV0 {
@@ -26,25 +26,25 @@ pub struct HeaderV0 {
 }
 
 impl HeaderV0 {
-
 	/// # Panics
 	///
 	/// Panics when any of the values cannot be parsed as provided or the enum integer is unknown
-	#[must_use] pub fn from_binary_header(binary_header: &HeaderBinaryV0) -> Self {
+	#[must_use]
+	pub fn from_binary_header(binary_header: &HeaderBinaryV0) -> Self {
 		let datatype: DataType;
 		match u8::from_be_bytes(binary_header.datatype) {
-			0 => { datatype = DataType::Password},
-			1 => { datatype = DataType::File}
-			_ => {panic!("Cannot match header datatype")}
+			0 => { datatype = DataType::Password }
+			1 => { datatype = DataType::File }
+			_ => { panic!("Cannot match header datatype") }
 		}
 		Self {
 			version: u16::from_be_bytes(binary_header.version),
 			datatype,
-			name:  String::from_utf8(Vec::from(binary_header.name)).unwrap(),
+			name: String::from_utf8(Vec::from(binary_header.name)).unwrap(),
 			created: u64::from_be_bytes(binary_header.created),
 			edited: u64::from_be_bytes(binary_header.edited),
 			file_name: String::from_utf8(Vec::from(binary_header.file_name)).unwrap(),
-			buffer_size: u64::from_be_bytes(binary_header.buffer_size)
+			buffer_size: u64::from_be_bytes(binary_header.buffer_size),
 		}
 	}
 }

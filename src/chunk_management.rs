@@ -1,6 +1,5 @@
 use std::fs::File;
 use std::io::Write;
-use std::option::Option::Some;
 #[cfg(target_family = "unix")]
 use std::os::unix::fs::FileExt
 ;
@@ -51,24 +50,31 @@ impl BufferReader {
 		self
 	}
 
+	/// # Panics
+	///
+	/// Panics when file handle is invalid in any form
+	#[must_use]
 	pub fn write_next(mut self) -> Self {
 		let mut file = self.file;
 
 		let file_len = file.metadata().unwrap().len();
 		let buff_count = file_len / self.buffer_size;
-		let mut buffer = vec![0; self.buffer_size as usize];
+		#[allow(clippy::cast_possible_truncation)] // Cast has to be save, should not ever panic
+			let buffer = vec![0; self.buffer_size as usize];
 
 		for _ in 0..buff_count {
-				file.seek_write(&mut buffer, self.offset).unwrap();
+			file.seek_write(&buffer, self.offset).unwrap();
 
 			file.write_all(&buffer).unwrap();
 			self.offset += self.buffer_size;
 		}
 		self.file = file;
-		return self
+		self
 	}
 
+	#[must_use]
 	pub fn new(file: File, buffer_size: u64) -> Self {
+		#[allow(clippy::cast_possible_truncation)] // Cast has to be save, should not ever panic
 		Self {
 			file,
 			offset: 0,
