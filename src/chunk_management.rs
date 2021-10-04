@@ -63,8 +63,10 @@ impl BufferReader {
 			let buffer = vec![0; self.buffer_size as usize];
 
 		for _ in 0..buff_count {
+			#[cfg(target_family = "windows")]
 			file.seek_write(&buffer, self.offset).unwrap();
 
+			#[cfg(target_family = "unix")]
 			file.write_all(&buffer).unwrap();
 			self.offset += self.buffer_size;
 		}
