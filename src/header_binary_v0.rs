@@ -5,9 +5,12 @@ use pad::PadStr;
 use crate::datatype::DataType;
 use crate::header_v0::HeaderV0;
 
-const VERSION: u16 = 0;
 //Do not change!!!
-const HEADER_SIZE: usize = 0;
+const MAGIC_NUMBER_SIZE: usize = 10;
+const MAGIC_NUMBER: [u8; MAGIC_NUMBER_SIZE] = *b"slpm-filef";
+const VERSION: u16 = 0;
+
+const HEADER_SIZE: usize = 1024;
 
 const VERSION_SIZE: usize = 2;
 const DATATYPE_SIZE: usize = 1;
@@ -17,8 +20,12 @@ const EDITED_SIZE: usize = 8;
 const FILE_NAME_SIZE: usize = 128;
 const BUFFER_SIZE_SIZE: usize = 8;
 
+/// All values are big endian
 #[derive(Clone, Hash, Debug, Eq, Ord, PartialOrd, PartialEq)]
 pub struct HeaderBinaryV0 {
+	/// u32 Magic number for exact identification of file-format does not exist on processed header
+	pub magic_number: [u8; MAGIC_NUMBER_SIZE],
+
 	/// u16 Version indicating which struct to deserialize to (for future)
 	pub version: [u8; VERSION_SIZE],
 
@@ -48,6 +55,7 @@ impl HeaderBinaryV0 {
 
 		// Ordering is highly important and needs to match the from_bytes function
 		let mut output = Vec::new();
+		output.extend_from_slice(&self.magic_number);
 		output.extend_from_slice(&self.version);
 		output.extend_from_slice(&self.datatype);
 		output.extend_from_slice(&self.name);
@@ -64,21 +72,41 @@ impl HeaderBinaryV0 {
 	/// Should never panic
 	#[must_use]
 	pub fn from_bytes(bytes: &[u8; HEADER_SIZE]) -> Self {
-		let version_and_rest = bytes.split_at(VERSION_SIZE);
-		let datatype_and_rest = version_and_rest.1.split_at(DATATYPE_SIZE);
-		let name_and_rest = datatype_and_rest.1.split_at(NAME_SIZE);
-		let created_and_rest = name_and_rest.1.split_at(CREATED_SIZE);
-		let edited_and_rest = created_and_rest.1.split_at(EDITED_SIZE);
-		let file_name_and_rest = edited_and_rest.1.split_at(FILE_NAME_SIZE);
-		let buffer_size_and_rest = file_name_and_rest.1.split_at(BUFFER_SIZE_SIZE);
+		let mut position = 0_usize;
+
+		let magic_number = <[u8; MAGIC_NUMBER_SIZE]>::try_from(&bytes[position..MAGIC_NUMBER_SIZE]).unwrap();
+		position += MAGIC_NUMBER_SIZE;
+
+		let version = <[u8; VERSION_SIZE]>::try_from(&bytes[position..VERSION_SIZE]).unwrap();
+		position += VERSION_SIZE;
+
+		let datatype = <[u8; DATATYPE_SIZE]>::try_from(&bytes[position..DATATYPE_SIZE]).unwrap();
+		position += DATATYPE_SIZE;
+
+		let name = <[u8; NAME_SIZE]>::try_from(&bytes[position..NAME_SIZE]).unwrap();
+		position += NAME_SIZE;
+
+		let created = <[u8; CREATED_SIZE]>::try_from(&bytes[position..CREATED_SIZE]).unwrap();
+		position += CREATED_SIZE;
+
+		let edited = <[u8; EDITED_SIZE]>::try_from(&bytes[position..EDITED_SIZE]).unwrap();
+		position += EDITED_SIZE;
+
+		let file_name = <[u8; FILE_NAME_SIZE]>::try_from(&bytes[position..FILE_NAME_SIZE]).unwrap();
+		position += FILE_NAME_SIZE;
+
+		let buffer_size = <[u8; BUFFER_SIZE_SIZE]>::try_from(&bytes[position..BUFFER_SIZE_SIZE]).unwrap();
+		// position += BUFFER_SIZE_SIZE; Uncomment when adding further entries after this
+
 		Self {
-			version: <[u8; VERSION_SIZE]>::try_from(version_and_rest.0).unwrap(),
-			datatype: <[u8; DATATYPE_SIZE]>::try_from(datatype_and_rest.0).unwrap(),
-			name: <[u8; NAME_SIZE]>::try_from(name_and_rest.0).unwrap(),
-			created: <[u8; CREATED_SIZE]>::try_from(created_and_rest.0).unwrap(),
-			edited: <[u8; EDITED_SIZE]>::try_from(edited_and_rest.0).unwrap(),
-			file_name: <[u8; FILE_NAME_SIZE]>::try_from(file_name_and_rest.0).unwrap(),
-			buffer_size: <[u8; BUFFER_SIZE_SIZE]>::try_from(buffer_size_and_rest.0).unwrap(),
+			magic_number,
+			version,
+			datatype,
+			name,
+			created,
+			edited,
+			file_name,
+			buffer_size,
 		}
 	}
 	/// # Panics
@@ -101,6 +129,7 @@ impl HeaderBinaryV0 {
 		let file_name_padded = file_name.pad_to_width(FILE_NAME_SIZE);
 
 		Self {
+			magic_number: MAGIC_NUMBER,
 			version: VERSION.to_be_bytes(), //Increment for new file
 			datatype: datatype_id.to_be_bytes(),
 			name: <[u8; NAME_SIZE]>::try_from(name_padded.as_bytes()).unwrap(),
@@ -121,6 +150,7 @@ impl HeaderBinaryV0 {
 			DataType::File => data_type = 1
 		}
 		Self {
+			magic_number: MAGIC_NUMBER,
 			version: header.version.to_be_bytes(), //Increment for new file
 			datatype: data_type.to_be_bytes(),
 			name: <[u8; NAME_SIZE]>::try_from(header.name.as_bytes()).unwrap(),
