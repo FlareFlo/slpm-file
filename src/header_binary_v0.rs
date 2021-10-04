@@ -45,6 +45,8 @@ pub struct HeaderBinaryV0 {
 impl HeaderBinaryV0 {
 	#[must_use]
 	pub fn to_bytes(&self) -> Vec<u8> {
+
+		// Ordering is highly important and needs to match the from_bytes function
 		let mut output = Vec::new();
 		output.extend_from_slice(&self.version);
 		output.extend_from_slice(&self.datatype);
