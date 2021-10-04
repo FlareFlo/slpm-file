@@ -55,7 +55,7 @@ impl BufferReader {
 	/// Panics when file handle is invalid in any form
 	#[must_use]
 	pub fn write_next(mut self) -> Self {
-		let mut file = self.file;
+		let file = self.file;
 
 		let file_len = file.metadata().unwrap().len();
 		let buff_count = file_len / self.buffer_size;
