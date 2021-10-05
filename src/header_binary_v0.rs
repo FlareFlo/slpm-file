@@ -160,4 +160,23 @@ impl HeaderBinaryV0 {
 			buffer_size: header.buffer_size.to_be_bytes(),
 		}
 	}
+
+	pub fn to_header(&self) -> HeaderV0 {
+		let datatype: DataType;
+		match u8::from_be_bytes(self.datatype) {
+			0 => datatype = DataType::Password,
+			1 => datatype = DataType::File,
+			_ => {panic!("cannot match datatype")}
+		}
+
+		HeaderV0 {
+			version: 0,
+			datatype,
+			name: String::from_utf8(Vec::from(self.name)).unwrap(),
+			created: u64::from_be_bytes(self.created),
+			edited: u64::from_be_bytes(self.created),
+			file_name: String::from_utf8(Vec::from(self.file_name)).unwrap(),
+			buffer_size: u64::from_be_bytes(self.buffer_size)
+		}
+	}
 }

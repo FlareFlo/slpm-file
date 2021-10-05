@@ -38,3 +38,12 @@ fn binary_parse() {
 	let new_header = HeaderBinaryV0::from_bytes(<&[u8; 1024]>::try_from(header.to_bytes().as_slice()).unwrap());
 	assert_eq!(header, new_header)
 }
+
+#[test]
+fn header_binary_and_back() {
+	let header_binary = HeaderBinaryV0::from_parameters(&DataType::File, "Test", None, "Filename", 12345);
+
+	let header = header_binary.to_header();
+
+	assert_eq!(header_binary, HeaderBinaryV0::from_header(&header))
+}
