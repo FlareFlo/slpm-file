@@ -28,12 +28,10 @@ impl BufferReader {
 	#[must_use]
 	pub fn read_next(&mut self) -> Vec<u8> {
 		let buffer_len: usize;
-		if self.offset + self.buffer_size < self.file_len{
-			buffer_len = usize::try_from(self.file_len).unwrap();
-		}else if self.offset < self.file_len + self.buffer_size {
+		if self.offset + self.buffer_size < self.file_len {
+			buffer_len = usize::try_from(self.buffer_size).unwrap();
+		} else {
 			buffer_len = usize::try_from(self.file_len - self.offset).unwrap();
-		}else {
-			panic!("Could not find range in which to read");
 		}
 		let mut buffer = vec![0; buffer_len];
 
