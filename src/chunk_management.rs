@@ -2,8 +2,7 @@ use std::convert::TryFrom;
 use std::fs::File;
 use std::io::Write;
 #[cfg(target_family = "unix")]
-use std::os::unix::fs::FileExt
-;
+use std::os::unix::fs::FileExt;
 #[cfg(target_family = "windows")]
 use std::os::windows::fs::FileExt;
 
@@ -54,7 +53,7 @@ impl BufferReader {
 			self.file.seek_write(buffer, self.offset).unwrap();
 
 		#[cfg(target_family = "unix")]
-			self.file.write_all(buffer).unwrap();
+			self.file.write_all_at(buffer, self.offset).unwrap();
 
 		self.offset += self.buffer_size;
 		self
