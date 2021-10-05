@@ -1,3 +1,4 @@
+use std::convert::TryFrom;
 use std::fs::File;
 use std::io::Write;
 #[cfg(target_family = "unix")]
@@ -10,68 +11,54 @@ pub struct BufferReader {
 	/// Optional file handle for creating new instance
 	pub file: File,
 
+	/// File length for easier ownership handling and avoiding repetition
+	pub file_len: u64,
+
 	/// Offset of the seek-reader to carry over progress across runs
 	pub offset: u64,
 
 	/// Specifies in which size the file buffer was written in, mismatched sizes wont allow the reader to gather correct data
 	pub buffer_size: u64,
-
-	/// Buffer filled with data for usage after return or writing
-	pub buffer: Vec<u8>,
 }
 
 impl BufferReader {
 	/// # Panics
 	///
-	/// Panics when file handle or file path are missing or invalid
+	/// Panics when file lengths dont match
 	#[must_use]
-	pub fn read_next(mut self) -> Self {
-		// self.buffer.unwrap().clear(); //Clears buffer in case previous buffer was not empty
-
-
-		let file = self.file;
-
-		let file_len = &file.metadata().unwrap().len();
-
-		if self.offset < file_len / self.buffer_size {}
-
-		#[allow(clippy::cast_possible_truncation)]
-			let mut buffer = vec![0; self.buffer_size as usize];
-
+	pub fn read_next(&mut self) -> Vec<u8> {
+		let buffer_len: usize;
+		if self.offset + self.buffer_size < self.file_len{
+			buffer_len = usize::try_from(self.file_len).unwrap();
+		}else if self.offset < self.file_len + self.buffer_size {
+			buffer_len = usize::try_from(self.file_len - self.offset).unwrap();
+		}else {
+			panic!("Could not find range in which to read");
+		}
+		let mut buffer = vec![0; buffer_len];
 
 		#[cfg(target_family = "unix")]
-			file.read_exact_at(&mut buffer, self.offset).unwrap();
+			self.file.read_exact_at(&mut buffer, self.offset).unwrap();
+
 		#[cfg(target_family = "windows")]
-			file.seek_read(&mut buffer, self.offset).unwrap();
+			self.file.seek_read(&mut buffer, self.offset).unwrap();
 
 		self.offset += &self.buffer_size;
-		self.file = file;
-
-		self
+		buffer
 	}
 
 	/// # Panics
 	///
 	/// Panics when file handle is invalid in any form
 	#[must_use]
-	pub fn write_next(mut self) -> Self {
-		// needs to be mutable for unix
-		let mut file = self.file;
+	pub fn write_next(mut self, buffer: &[u8]) -> Self {
+		#[cfg(target_family = "windows")]
+			self.file.seek_write(buffer, self.offset).unwrap();
 
-		let file_len = file.metadata().unwrap().len();
-		let buff_count = file_len / self.buffer_size;
-		#[allow(clippy::cast_possible_truncation)] // Cast has to be save, should not ever panic
-			let buffer = vec![0; self.buffer_size as usize];
+		#[cfg(target_family = "unix")]
+			self.file.write_all(buffer).unwrap();
 
-		for _ in 0..buff_count {
-			#[cfg(target_family = "windows")]
-			file.seek_write(&buffer, self.offset).unwrap();
-
-			#[cfg(target_family = "unix")]
-			file.write_all(&buffer).unwrap();
-			self.offset += self.buffer_size;
-		}
-		self.file = file;
+		self.offset += self.buffer_size;
 		self
 	}
 
@@ -80,9 +67,9 @@ impl BufferReader {
 		#[allow(clippy::cast_possible_truncation)] // Cast has to be save, should not ever panic
 		Self {
 			file,
+			file_len: 0,
 			offset: 0,
 			buffer_size,
-			buffer: vec![0; buffer_size as usize],
 		}
 	}
 }
@@ -105,6 +92,7 @@ pub fn read_file_in_chunks_and_write() {
 	for _ in 0..buff_count {
 		#[cfg(target_family = "unix")]
 			file.read_exact_at(&mut buffer, offset).unwrap();
+
 		#[cfg(target_family = "windows")]
 			file.seek_read(&mut buffer, offset).unwrap();
 
@@ -118,6 +106,7 @@ pub fn read_file_in_chunks_and_write() {
 
 	#[cfg(target_family = "unix")]
 		file.read_exact_at(&mut buffer_last, offset).unwrap();
+
 	#[cfg(target_family = "windows")]
 		file.seek_read(&mut buffer_last, offset).unwrap();
 
