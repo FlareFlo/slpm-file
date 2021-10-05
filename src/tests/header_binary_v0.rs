@@ -45,5 +45,5 @@ fn header_binary_and_back() {
 
 	let header = header_binary.to_header();
 
-	assert_eq!(header_binary, HeaderBinaryV0::from_header(&header))
+	assert_eq!(header_binary, HeaderBinaryV0::from_header(&header));
 }

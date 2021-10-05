@@ -80,6 +80,7 @@ impl HeaderBinaryV0 {
 		let version = <[u8; VERSION_SIZE]>::try_from(&bytes[position..position + VERSION_SIZE]).unwrap();
 		position += VERSION_SIZE;
 
+		#[allow(clippy::range_plus_one)] // DATATYPE_SIZE equals 1 where Clippy wants to use an inclusive range
 		let datatype = <[u8; DATATYPE_SIZE]>::try_from(&bytes[position..position + DATATYPE_SIZE]).unwrap();
 		position += DATATYPE_SIZE;
 
@@ -161,7 +162,10 @@ impl HeaderBinaryV0 {
 		}
 	}
 
-	pub fn to_header(&self) -> HeaderV0 {
+	/// # Panics
+	///
+	/// Panics when any of the header values are not parsable to the given types
+	#[must_use]pub fn to_header(&self) -> HeaderV0 {
 		let datatype: DataType;
 		match u8::from_be_bytes(self.datatype) {
 			0 => datatype = DataType::Password,
@@ -170,7 +174,7 @@ impl HeaderBinaryV0 {
 		}
 
 		HeaderV0 {
-			version: 0,
+			version: VERSION,
 			datatype,
 			name: String::from_utf8(Vec::from(self.name)).unwrap(),
 			created: u64::from_be_bytes(self.created),
