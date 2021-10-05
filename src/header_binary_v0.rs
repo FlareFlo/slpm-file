@@ -74,28 +74,28 @@ impl HeaderBinaryV0 {
 	pub fn from_bytes(bytes: &[u8; HEADER_SIZE]) -> Self {
 		let mut position = 0_usize;
 
-		let magic_number = <[u8; MAGIC_NUMBER_SIZE]>::try_from(&bytes[position..MAGIC_NUMBER_SIZE]).unwrap();
+		let magic_number = <[u8; MAGIC_NUMBER_SIZE]>::try_from(&bytes[position..position + MAGIC_NUMBER_SIZE]).unwrap();
 		position += MAGIC_NUMBER_SIZE;
 
-		let version = <[u8; VERSION_SIZE]>::try_from(&bytes[position..VERSION_SIZE]).unwrap();
+		let version = <[u8; VERSION_SIZE]>::try_from(&bytes[position..position + VERSION_SIZE]).unwrap();
 		position += VERSION_SIZE;
 
-		let datatype = <[u8; DATATYPE_SIZE]>::try_from(&bytes[position..DATATYPE_SIZE]).unwrap();
+		let datatype = <[u8; DATATYPE_SIZE]>::try_from(&bytes[position..position + DATATYPE_SIZE]).unwrap();
 		position += DATATYPE_SIZE;
 
-		let name = <[u8; NAME_SIZE]>::try_from(&bytes[position..NAME_SIZE]).unwrap();
+		let name = <[u8; NAME_SIZE]>::try_from(&bytes[position..position + NAME_SIZE]).unwrap();
 		position += NAME_SIZE;
 
-		let created = <[u8; CREATED_SIZE]>::try_from(&bytes[position..CREATED_SIZE]).unwrap();
+		let created = <[u8; CREATED_SIZE]>::try_from(&bytes[position..position + CREATED_SIZE]).unwrap();
 		position += CREATED_SIZE;
 
-		let edited = <[u8; EDITED_SIZE]>::try_from(&bytes[position..EDITED_SIZE]).unwrap();
+		let edited = <[u8; EDITED_SIZE]>::try_from(&bytes[position..position + EDITED_SIZE]).unwrap();
 		position += EDITED_SIZE;
 
-		let file_name = <[u8; FILE_NAME_SIZE]>::try_from(&bytes[position..FILE_NAME_SIZE]).unwrap();
+		let file_name = <[u8; FILE_NAME_SIZE]>::try_from(&bytes[position..position + FILE_NAME_SIZE]).unwrap();
 		position += FILE_NAME_SIZE;
 
-		let buffer_size = <[u8; BUFFER_SIZE_SIZE]>::try_from(&bytes[position..BUFFER_SIZE_SIZE]).unwrap();
+		let buffer_size = <[u8; BUFFER_SIZE_SIZE]>::try_from(&bytes[position..position + BUFFER_SIZE_SIZE]).unwrap();
 		// position += BUFFER_SIZE_SIZE; Uncomment when adding further entries after this
 
 		Self {

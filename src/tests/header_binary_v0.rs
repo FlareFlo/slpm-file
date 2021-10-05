@@ -2,6 +2,7 @@
 use crate::datatype::DataType;
 use crate::header_binary_v0::HeaderBinaryV0;
 use crate::header_v0::HeaderV0;
+use std::convert::TryFrom;
 
 #[test]
 fn create_binary_header_from_parameters() {
@@ -28,4 +29,12 @@ fn from_header() {
 	assert_eq!(header.edited as i64, chrono::Local::now().timestamp());
 	assert_eq!(header.file_name.trim(), "Test_file_name".to_owned().trim());
 	assert_eq!(header.buffer_size, 500_000);
+}
+
+#[test]
+fn binary_parse() {
+	let header = HeaderBinaryV0::from_parameters(&DataType::File, "Test", None, "Filename", 12345);
+
+	let new_header = HeaderBinaryV0::from_bytes(<&[u8; 1024]>::try_from(header.to_bytes().as_slice()).unwrap());
+	assert_eq!(header, new_header)
 }
