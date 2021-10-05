@@ -23,7 +23,7 @@ const BUFFER_SIZE_SIZE: usize = 8;
 /// All values are big endian
 #[derive(Clone, Hash, Debug, Eq, Ord, PartialOrd, PartialEq)]
 pub struct HeaderBinaryV0 {
-	/// u32 Magic number for exact identification of file-format does not exist on processed header
+	/// 80 bit Magic number for exact identification of file-format (does not exist on processed header)
 	pub magic_number: [u8; MAGIC_NUMBER_SIZE],
 
 	/// u16 Version indicating which struct to deserialize to (for future)
