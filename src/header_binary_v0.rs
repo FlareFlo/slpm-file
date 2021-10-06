@@ -10,7 +10,7 @@ const MAGIC_NUMBER_SIZE: usize = 10;
 const MAGIC_NUMBER: [u8; MAGIC_NUMBER_SIZE] = *b"slpm-filef";
 const VERSION: u16 = 0;
 
-const HEADER_SIZE: usize = 1024;
+pub(crate) const HEADER_SIZE: usize = 1024;
 
 const VERSION_SIZE: usize = 2;
 const DATATYPE_SIZE: usize = 1;
@@ -69,7 +69,7 @@ impl HeaderBinaryV0 {
 
 	/// # Panics
 	///
-	/// Should never panic
+	/// Panics when the bytes provided do not reach header size
 	#[must_use]
 	pub fn from_bytes(bytes: &[u8; HEADER_SIZE]) -> Self {
 		let mut position = 0_usize;
@@ -81,7 +81,7 @@ impl HeaderBinaryV0 {
 		position += VERSION_SIZE;
 
 		#[allow(clippy::range_plus_one)] // DATATYPE_SIZE equals 1 where Clippy wants to use an inclusive range
-		let datatype = <[u8; DATATYPE_SIZE]>::try_from(&bytes[position..position + DATATYPE_SIZE]).unwrap();
+			let datatype = <[u8; DATATYPE_SIZE]>::try_from(&bytes[position..position + DATATYPE_SIZE]).unwrap();
 		position += DATATYPE_SIZE;
 
 		let name = <[u8; NAME_SIZE]>::try_from(&bytes[position..position + NAME_SIZE]).unwrap();
@@ -165,12 +165,13 @@ impl HeaderBinaryV0 {
 	/// # Panics
 	///
 	/// Panics when any of the header values are not parsable to the given types
-	#[must_use]pub fn to_header(&self) -> HeaderV0 {
+	#[must_use]
+	pub fn to_header(&self) -> HeaderV0 {
 		let datatype: DataType;
 		match u8::from_be_bytes(self.datatype) {
 			0 => datatype = DataType::Password,
 			1 => datatype = DataType::File,
-			_ => {panic!("cannot match datatype")}
+			_ => { panic!("cannot match datatype") }
 		}
 
 		HeaderV0 {
@@ -180,7 +181,7 @@ impl HeaderBinaryV0 {
 			created: u64::from_be_bytes(self.created),
 			edited: u64::from_be_bytes(self.created),
 			file_name: String::from_utf8(Vec::from(self.file_name)).unwrap(),
-			buffer_size: u64::from_be_bytes(self.buffer_size)
+			buffer_size: u64::from_be_bytes(self.buffer_size),
 		}
 	}
 }

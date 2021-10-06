@@ -1,15 +1,17 @@
 #![allow(unused_imports)]
+
+use std::convert::TryFrom;
+
 use crate::datatype::DataType;
 use crate::header_binary_v0::HeaderBinaryV0;
 use crate::header_v0::HeaderV0;
-use std::convert::TryFrom;
 
 #[test]
 fn create_binary_header_from_parameters() {
 	let header = HeaderBinaryV0::from_parameters(&DataType::File, "Test_header", None, "Test_file_name", 500_000);
 
 	assert_eq!(header.magic_number, [115, 108, 112, 109, 45, 102, 105, 108, 101, 102]);
-	assert_eq!(header.version, [0,0]);
+	assert_eq!(header.version, [0, 0]);
 	assert_eq!(header.datatype, [1]);
 	assert_eq!(header.name, [84, 101, 115, 116, 95, 104, 101, 97, 100, 101, 114, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32]);
 	assert_eq!(header.created, chrono::Local::now().timestamp().to_be_bytes());
