@@ -7,20 +7,26 @@ use argon2::password_hash::SaltString;
 use rand::Rng;
 use rand::rngs::OsRng;
 
-use crate::header_binary_v0::HeaderBinaryV0;
+use crate::header_binary_v0::{HEADER_SIZE, HeaderBinaryV0};
+
+const SALT_SIZE: usize = 22;
+const NONCE_SIZE: usize = 12;
 
 pub struct Entry {
-	pub header: [u8; 1024],
-	pub salt: [u8; 22],
-	pub nonce: [u8; 12],
-	pub ciphertext: Vec<u8>,
-}
+	/// The plaintext header
+	pub header: [u8; HEADER_SIZE],
 
-pub struct EntryUnlocked {
-	pub header: [u8; 1024],
-	pub salt: [u8; 22],
-	pub nonce: [u8; 12],
-	pub text: Vec<u8>,
+	/// Random salt generated for the password
+	pub salt: [u8; SALT_SIZE],
+
+	/// Random nonce generated for ciphertext
+	pub nonce: [u8; NONCE_SIZE],
+
+	/// Internal boolean for managing the encryption state
+	pub encrypted: bool,
+
+	/// The ciphertext either encrypted or not
+	pub ciphertext: Vec<u8>,
 }
 
 impl Entry {
@@ -39,9 +45,10 @@ impl Entry {
 		let nonce = Nonce::from_slice(&random_bytes);
 
 		Self {
-			header: <[u8; 1024]>::try_from(header.to_bytes()).unwrap(),
-			salt: <[u8; 22]>::try_from(salt.as_bytes()).unwrap(),
-			nonce: <[u8; 12]>::try_from(nonce.as_slice()).unwrap(),
+			header: <[u8; HEADER_SIZE]>::try_from(header.to_bytes()).unwrap(),
+			salt: <[u8; SALT_SIZE]>::try_from(salt.as_bytes()).unwrap(),
+			nonce: <[u8; NONCE_SIZE]>::try_from(nonce.as_slice()).unwrap(),
+			encrypted: true,
 			ciphertext: cipher.encrypt(nonce, value).unwrap(),
 		}
 	}
@@ -50,7 +57,7 @@ impl Entry {
 	///
 	///Panics when the password is wrong
 	#[must_use]
-	pub fn decrypt(&self, password: &str) -> EntryUnlocked {
+	pub fn decrypt(&self, password: &str) -> Self {
 		let nonce = Nonce::from_slice(&self.nonce);
 
 		let password_hash = Argon2::default().hash_password(password.as_bytes(), &String::from_utf8(Vec::from(self.salt)).unwrap()).unwrap().hash.unwrap();
@@ -58,11 +65,12 @@ impl Entry {
 
 		let ciphertext = &self.ciphertext;
 
-		EntryUnlocked {
+		Self {
 			header: self.header,
 			salt: self.salt,
 			nonce: self.nonce,
-			text: cipher.decrypt(nonce, ciphertext.as_slice()).unwrap(),
+			encrypted: false,
+			ciphertext: cipher.decrypt(nonce, ciphertext.as_slice()).unwrap(),
 		}
 	}
 
@@ -70,15 +78,26 @@ impl Entry {
 	///
 	/// Panics when the file is too short to be split
 	#[must_use]
-	pub fn from_bytes(file: &[u8]) -> Self {
-		let header_and_rest = file.split_at(1024);
-		let salt_and_rest = header_and_rest.1.split_at(22);
-		let nonce_and_rest = salt_and_rest.1.split_at(12);
+	pub fn from_bytes(file: &[u8], encrypted: bool) -> Self {
+		let mut position = 0_usize;
+
+		let header = <[u8; HEADER_SIZE]>::try_from(&file[position..position + HEADER_SIZE]).unwrap();
+		position += HEADER_SIZE;
+
+		let salt = <[u8; SALT_SIZE]>::try_from(&file[position..position + SALT_SIZE]).unwrap();
+		position += SALT_SIZE;
+
+		let nonce = <[u8; NONCE_SIZE]>::try_from(&file[position..position + NONCE_SIZE]).unwrap();
+		position += NONCE_SIZE;
+
+		let ciphertext = file[position..].to_vec();
+
 		Self {
-			header: <[u8; 1024]>::try_from(header_and_rest.0).unwrap(),
-			salt: <[u8; 22]>::try_from(salt_and_rest.0).unwrap(),
-			nonce: <[u8; 12]>::try_from(nonce_and_rest.0).unwrap(),
-			ciphertext: Vec::from(nonce_and_rest.1),
+			header,
+			salt,
+			nonce,
+			encrypted,
+			ciphertext,
 		}
 	}
 	#[must_use]
