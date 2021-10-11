@@ -2,6 +2,7 @@
 
 use std::fs;
 use std::time::Instant;
+
 use crate::datatype::DataType;
 use crate::header_binary_v0::HeaderBinaryV0;
 use crate::header_v0::HeaderV0;
@@ -19,7 +20,8 @@ fn encrypt_decrypt() {
 	let decrypted = serialized.decrypt("password");
 	fs::write("./src/tests/testing_files/new_gradient_image.dds", &decrypted.ciphertext).unwrap();
 
-	assert_eq!(fs::read("./src/tests/testing_files/gradient_image.dds").unwrap(),fs::read("./src/tests/testing_files/new_gradient_image.dds").unwrap());
+	assert_eq!(fs::read("./src/tests/testing_files/gradient_image.dds").unwrap(), fs::read("./src/tests/testing_files/new_gradient_image.dds").unwrap());
 	fs::remove_file("./src/tests/testing_files/new_gradient_image.dds").unwrap();
 	fs::remove_file("./src/tests/testing_files/encrypted_gradient_image.slpm").unwrap();
 }
+
