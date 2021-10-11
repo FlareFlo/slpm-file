@@ -12,7 +12,7 @@ use crate::payload::Entry;
 fn encrypt_decrypt() {
 	let header = HeaderBinaryV0::from_parameters(&DataType::File, "drawing.dds", None, "gradient_image.dds", 1_000);
 	let data = fs::read("./src/tests/testing_files/gradient_image.dds").unwrap(); //local, use any
-	let entry = Entry::encrypt(&data, &header, "password");
+	let entry = Entry::encrypt(&data, &header, b"password");
 	fs::write("./src/tests/testing_files/encrypted_gradient_image.slpm", entry.to_bytes()).unwrap();
 
 	let read = fs::read("./src/tests/testing_files/encrypted_gradient_image.slpm").unwrap();
