@@ -34,10 +34,10 @@ impl Entry {
 	///
 	/// Panics when any of the values exceed natural limitations
 	#[must_use]
-	pub fn encrypt(value: &[u8], header: &HeaderBinaryV0, password: &str) -> Self {
+	pub fn encrypt(value: &[u8], header: &HeaderBinaryV0, password: &[u8]) -> Self {
 		let salt = SaltString::generate(&mut OsRng);
 
-		let password_hash = Argon2::default().hash_password(password.as_bytes(), &salt).unwrap().hash.unwrap();
+		let password_hash = Argon2::default().hash_password(password, &salt).unwrap().hash.unwrap();
 
 		let cipher = Aes256Gcm::new(Key::from_slice(password_hash.as_bytes()));
 
